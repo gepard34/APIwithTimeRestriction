@@ -1,8 +1,11 @@
+
 import org.apache.commons.lang3.concurrent.TimedSemaphore;
 import org.springframework.http.*;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -27,10 +30,12 @@ public class StatisticsThread extends Thread {
     // Gather statistics
     public void run() {
         try {
-
             while (semaphore.getAvailablePermits() > 0) {
-                semaphore.acquire();   // limit database load
+                Thread.sleep(1000);
+                semaphore.acquire();   // limit load
                 requestToApi();        // issue a query
+                System.out.println("Available permits: " + semaphore.getAvailablePermits() + " for "
+                + Thread.currentThread().getName());
             }
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
@@ -40,26 +45,45 @@ public class StatisticsThread extends Thread {
     public static void main(String[] args) {
 
         StatisticsThread statisticsThread = new StatisticsThread(TimeUnit.SECONDS, 5, 6);
+        StatisticsThread statisticsThread2 = new StatisticsThread(TimeUnit.SECONDS, 1, 4);
         statisticsThread.start();
+        statisticsThread2.start();
 
         try {
             statisticsThread.join();
+            statisticsThread2.join();
         } catch (InterruptedException e) {
             throw new RuntimeException(e);
         }
     }
 
-    private void requestToApi() throws RestClientException {
+    private synchronized void requestToApi() throws RestClientException {
         System.out.println("API is used by thread: " + Thread.currentThread().getName());
         RestTemplate restTemplate = new RestTemplate();
         Response response = new Response();
         HttpEntity<Response> responseHttpEntity = new HttpEntity<>(response);
-        ResponseEntity<Object> httpEntity = null;
         System.out.println("Request to some api");
-        ResponseEntity<Object> exchange = restTemplate.exchange(url, HttpMethod.POST, responseHttpEntity, Object.class);
+        MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
+        converter.setSupportedMediaTypes(Arrays.asList(MediaType.TEXT_PLAIN, MediaType.APPLICATION_JSON));
+        restTemplate.getMessageConverters().add(0, converter);
+        ResponseEntity<Object> request = restTemplate.exchange(url, HttpMethod.POST, responseHttpEntity, Object.class);
     }
 
     static class Response {
+        private String participantInn;
+        private String doc_id;
+        private String doc_status;
+        private String doc_type;
+        private Boolean importRequest;
+        private String owner_inn;
+        private String participant_inn;
+        private String producer_inn;
+        private Date date;
+        private String production_type;
+        private List<Products> products;
+        private Date reg_date;
+        private String reg_number;
+
         public Response(String participantInn, String doc_id, String doc_status, String doc_type, Boolean importRequest, String owner_inn, String participant_inn, String producer_inn, Date date, String production_type, List<Products> products, Date reg_date, String reg_number) {
             this.participantInn = participantInn;
             this.doc_id = doc_id;
@@ -182,20 +206,6 @@ public class StatisticsThread extends Thread {
         public void setReg_number(String reg_number) {
             this.reg_number = reg_number;
         }
-
-        private String participantInn;
-        private String doc_id;
-        private String doc_status;
-        private String doc_type;
-        private Boolean importRequest;
-        private String owner_inn;
-        private String participant_inn;
-        private String producer_inn;
-        private Date date;
-        private String production_type;
-        private List<Products> products;
-        private Date reg_date;
-        private String reg_number;
     }
 
     static class Products {
