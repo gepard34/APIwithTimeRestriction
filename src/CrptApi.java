@@ -10,7 +10,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-public class StatisticsThread extends Thread {
+public class CrptApi extends Thread {
     // The semaphore for limiting database load.
     private final TimedSemaphore semaphore;
 
@@ -22,7 +22,7 @@ public class StatisticsThread extends Thread {
 
     private final String url = "https://ismp.crpt.ru/api/v3/lk/documents/create";
     // Create an instance and set the semaphore
-    public StatisticsThread( TimeUnit timeUnit, int requestLimit, int duration) {
+    public CrptApi( TimeUnit timeUnit, int requestLimit, int duration) {
         this.duration =  duration;
         semaphore = new TimedSemaphore(duration, timeUnit, requestLimit);
     }
@@ -44,8 +44,8 @@ public class StatisticsThread extends Thread {
 
     public static void main(String[] args) {
 
-        StatisticsThread statisticsThread = new StatisticsThread(TimeUnit.SECONDS, 5, 6);
-        StatisticsThread statisticsThread2 = new StatisticsThread(TimeUnit.SECONDS, 1, 4);
+        CrptApi statisticsThread = new CrptApi(TimeUnit.SECONDS, 5, 6);
+        CrptApi statisticsThread2 = new CrptApi(TimeUnit.SECONDS, 1, 4);
         statisticsThread.start();
         statisticsThread2.start();
 
