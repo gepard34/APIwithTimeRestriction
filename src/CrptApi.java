@@ -60,16 +60,16 @@ public class CrptApi extends Thread {
     private synchronized void requestToApi() throws RestClientException {
         System.out.println("API is used by thread: " + Thread.currentThread().getName());
         RestTemplate restTemplate = new RestTemplate();
-        Response response = new Response();
-        HttpEntity<Response> responseHttpEntity = new HttpEntity<>(response);
+        Request request = new Request();
+        HttpEntity<Request> responseHttpEntity = new HttpEntity<>(request);
         System.out.println("Request to some api");
         MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
         converter.setSupportedMediaTypes(Arrays.asList(MediaType.TEXT_PLAIN, MediaType.APPLICATION_JSON));
         restTemplate.getMessageConverters().add(0, converter);
-        ResponseEntity<Object> request = restTemplate.exchange(url, HttpMethod.POST, responseHttpEntity, Object.class);
+        ResponseEntity<Object> response = restTemplate.exchange(url, HttpMethod.POST, responseHttpEntity, Object.class);
     }
 
-    static class Response {
+    static class Request {
         private String participantInn;
         private String doc_id;
         private String doc_status;
@@ -84,7 +84,7 @@ public class CrptApi extends Thread {
         private Date reg_date;
         private String reg_number;
 
-        public Response(String participantInn, String doc_id, String doc_status, String doc_type, Boolean importRequest, String owner_inn, String participant_inn, String producer_inn, Date date, String production_type, List<Products> products, Date reg_date, String reg_number) {
+        public Request(String participantInn, String doc_id, String doc_status, String doc_type, Boolean importRequest, String owner_inn, String participant_inn, String producer_inn, Date date, String production_type, List<Products> products, Date reg_date, String reg_number) {
             this.participantInn = participantInn;
             this.doc_id = doc_id;
             this.doc_status = doc_status;
@@ -100,7 +100,7 @@ public class CrptApi extends Thread {
             this.reg_number = reg_number;
         }
 
-        public Response() {
+        public Request() {
         }
 
         public String getParticipantInn() {
